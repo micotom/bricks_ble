@@ -5,7 +5,7 @@ import com.funglejunk.bricksble.msgtypes.*
 
 abstract class LegoMessage {
 
-    abstract val header: com.funglejunk.bricksble.Header
+    abstract val header: Header
     abstract val content: Content?
 
     interface Content {
@@ -22,25 +22,23 @@ abstract class LegoMessage {
     }
 
     data class UpstreamMessage(
-        override val header: com.funglejunk.bricksble.Header,
+        override val header: Header,
         override val content: Content.Upstream?
     ) :
         LegoMessage() {
 
-        inline fun <reified T : Content.Upstream> getContentTyped(): T? = content as? T
-
         companion object {
 
             fun decode(bytes: ByteArray): UpstreamMessage {
-                val header = com.funglejunk.bricksble.Header.Decoder.decode(bytes)
+                val header = Header.Decoder.decode(bytes)
                 val payloadBytes = bytes.copyOfRange(header.headerLength, header.packetLength)
                 val decoder: Content.Upstream.Decoder<*>? = when (header.messageType) {
-                    com.funglejunk.bricksble.Header.HubMessageType.HUB_ATTACHED_IO -> HubAttachedIo.Decoder
-                    com.funglejunk.bricksble.Header.HubMessageType.HUB_ACTIONS -> HubAction.Decoder
-                    com.funglejunk.bricksble.Header.HubMessageType.HUB_PROPERTIES -> HubProperty.Decoder
-                    com.funglejunk.bricksble.Header.HubMessageType.GENERIC_ERROR_MSG -> GenericErrorMessage.Decoder
-                    com.funglejunk.bricksble.Header.HubMessageType.HUB_ALERTS -> HubAlert.Decoder
-                    com.funglejunk.bricksble.Header.HubMessageType.PORT_OUTPUT_COMMAND_FEEDBACK -> PortOutputCommandFeedback.Decoder
+                    Header.HubMessageType.HUB_ATTACHED_IO -> HubAttachedIo.Decoder
+                    Header.HubMessageType.HUB_ACTIONS -> HubAction.Decoder
+                    Header.HubMessageType.HUB_PROPERTIES -> HubProperty.Decoder
+                    Header.HubMessageType.GENERIC_ERROR_MSG -> GenericErrorMessage.Decoder
+                    Header.HubMessageType.HUB_ALERTS -> HubAlert.Decoder
+                    Header.HubMessageType.PORT_OUTPUT_COMMAND_FEEDBACK -> PortOutputCommandFeedback.Decoder
                     else -> null
                 }
                 return UpstreamMessage(
@@ -54,7 +52,7 @@ abstract class LegoMessage {
             property: HubProperty.Property,
             onHubPropertyMessage: HubProperty.Payload<*>.() -> Unit
         ) {
-            if (header.messageType == com.funglejunk.bricksble.Header.HubMessageType.HUB_PROPERTIES &&
+            if (header.messageType == Header.HubMessageType.HUB_PROPERTIES &&
                 (content as HubProperty<*>).property == property
             ) {
                 onHubPropertyMessage(content.payload as HubProperty.Payload<*>)
@@ -64,14 +62,14 @@ abstract class LegoMessage {
     }
 
     data class DownstreamMessage(
-        override val header: com.funglejunk.bricksble.Header,
+        override val header: Header,
         override val content: Content.Downstream?
     ) :
         LegoMessage() {
 
         fun encode(): ByteArray =
             content?.let { content ->
-                val headerBytes = com.funglejunk.bricksble.Header.Builder.encode(header, content.length)
+                val headerBytes = Header.Builder.encode(header, content.length)
                 val contentBytes = content.encode()
                 headerBytes + contentBytes
             } ?: throw IllegalArgumentException("No content provided")
