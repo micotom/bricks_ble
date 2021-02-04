@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Bricks BLE</string>
+    <string name="rssi_info">%1$d dBm</string>
+    <string name="battery_info">%1$d \u0025</string>
+</resources>

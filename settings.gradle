@@ -1,0 +1,3 @@
+include ':codec'
+include ':app'
+rootProject.name = "Leo Boost"
